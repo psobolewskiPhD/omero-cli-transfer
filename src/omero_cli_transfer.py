@@ -599,7 +599,8 @@ class TransferControl(GraphControl):
                 logger.info("Cleaning up...")
                 shutil.rmtree(folder)
             else:
-                logger.info("--dir specified: output left as directory, not archived.")
+                logger.info("--dir specified: output left as directory,"
+                            " not archived.")
         return
 
     def __unpack(self, args):
