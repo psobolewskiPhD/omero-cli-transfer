@@ -44,6 +44,17 @@ TEST_FOLDERS = [
 
 class TestTransfer(CLITest):
 
+    def assert_pack_output_exists(self, packing, tmpdir, name):
+        path = tmpdir / name
+        if packing in ("tar", "zip"):
+            assert os.path.exists(str(path))
+            assert os.path.getsize(str(path)) > 0
+        elif packing == "dir":
+            assert os.path.isdir(str(path))
+            xml_path = path / "transfer.xml"
+            assert os.path.exists(str(xml_path))
+            assert os.path.getsize(str(xml_path)) > 0
+
     def setup_method(self, method):
         super(TestTransfer, self).setup_method(method)
         self.cli.register("transfer", TransferControl, "TEST")
@@ -453,7 +464,7 @@ class TestTransfer(CLITest):
         assert len(pl_ids) == 4
         self.delete_all()
 
-    @pytest.mark.parametrize('packing', ["tar", "zip"])
+    @pytest.mark.parametrize('packing', ["tar", "zip", "dir"])
     @pytest.mark.parametrize('target_name', sorted(SUPPORTED))
     def test_pack_unpack(self, target_name, packing, tmpdir):
         if target_name == "datasetid" or target_name == "projectid" or\
@@ -465,17 +476,21 @@ class TestTransfer(CLITest):
         if packing == "tar":
             name = 'test.tar'
             args = self.args + ["pack", target, str(tmpdir / name)]
-        else:
+        elif packing == "zip":
             name = 'test.zip'
             args = self.args + ["pack", target, "--zip", str(tmpdir / name)]
+        elif packing == "dir":
+            name = 'test_dir'
+            args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
         self.cli.invoke(args, strict=True)
+        self.assert_pack_output_exists(packing, tmpdir, name)
         self.delete_all()
         args = self.args + ["unpack", str(tmpdir / name)]
         self.cli.invoke(args, strict=True)
         self.run_asserts(target_name)
         self.delete_all()
 
-    @pytest.mark.parametrize('packing', ["tar", "zip"])
+    @pytest.mark.parametrize('packing', ["tar", "zip", "dir"])
     @pytest.mark.parametrize('target_name', sorted(SUPPORTED))
     def test_pack_unpack_multiple_projs(self, target_name, packing, tmpdir):
         if target_name == "projectid" or target_name == "idonly":
@@ -489,11 +504,15 @@ class TestTransfer(CLITest):
             if packing == "tar":
                 name = 'test.tar'
                 args = self.args + ["pack", target, str(tmpdir / name)]
-            else:
+            elif packing == "zip":
                 name = 'test.zip'
                 args = self.args + ["pack", target, "--zip",
                                     str(tmpdir / name)]
+            elif packing == "dir":
+                name = 'test_dir'
+                args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
             self.cli.invoke(args, strict=True)
+            self.assert_pack_output_exists(packing, tmpdir, name)
             self.delete_all()
             args = self.args + ["unpack", str(tmpdir / name)]
             self.cli.invoke(args, strict=True)
@@ -520,7 +539,7 @@ class TestTransfer(CLITest):
             self.delete_all()
         assert True
 
-    @pytest.mark.parametrize('packing', ["tar", "zip"])
+    @pytest.mark.parametrize('packing', ["tar", "zip", "dir"])
     def test_pack_unpack_multiple_datasets(self, packing, tmpdir):
         target_name = "datasetid"
         datasets = []
@@ -533,11 +552,15 @@ class TestTransfer(CLITest):
         if packing == "tar":
             name = 'test.tar'
             args = self.args + ["pack", target, str(tmpdir / name)]
-        else:
+        elif packing == "zip":
             name = 'test.zip'
             args = self.args + ["pack", target, "--zip",
                                 str(tmpdir / name)]
+        elif packing == "dir":
+            name = 'test_dir'
+            args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
         self.cli.invoke(args, strict=True)
+        self.assert_pack_output_exists(packing, tmpdir, name)
         self.delete_all()
         args = self.args + ["unpack", str(tmpdir / name)]
         self.cli.invoke(args, strict=True)
@@ -563,7 +586,7 @@ class TestTransfer(CLITest):
         self.run_asserts(target_name, multiple, span)
         self.delete_all()
 
-    @pytest.mark.parametrize('packing', ["tar", "zip"])
+    @pytest.mark.parametrize('packing', ["tar", "zip", "dir"])
     def test_pack_unpack_multiple_images(self, packing, tmpdir):
         target_name = "imageid"
         images = []
@@ -577,11 +600,15 @@ class TestTransfer(CLITest):
         if packing == "tar":
             name = 'test.tar'
             args = self.args + ["pack", target, str(tmpdir / name)]
-        else:
+        elif packing == "zip":
             name = 'test.zip'
             args = self.args + ["pack", target, "--zip",
                                 str(tmpdir / name)]
+        elif packing == "dir":
+            name = 'test_dir'
+            args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
         self.cli.invoke(args, strict=True)
+        self.assert_pack_output_exists(packing, tmpdir, name)
         self.delete_all()
         args = self.args + ["unpack", str(tmpdir / name)]
         self.cli.invoke(args, strict=True)
@@ -608,7 +635,7 @@ class TestTransfer(CLITest):
         self.run_asserts(target_name, multiple, span)
         self.delete_all()
 
-    @pytest.mark.parametrize('packing', ["tar", "zip"])
+    @pytest.mark.parametrize('packing', ["tar", "zip", "dir"])
     def test_pack_unpack_multiple_screens(self, packing, tmpdir):
         target_name = "screenid"
         screens = []
@@ -621,16 +648,38 @@ class TestTransfer(CLITest):
         if packing == "tar":
             name = 'test.tar'
             args = self.args + ["pack", target, str(tmpdir / name)]
-        else:
+            self.cli.invoke(args, strict=True)
+            assert os.path.exists(str(tmpdir / name))
+            assert os.path.getsize(str(tmpdir / name)) > 0
+            self.delete_all()
+            args = self.args + ["unpack", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            self.run_asserts(target_name, multiple, span)
+            self.delete_all()
+        elif packing == "zip":
             name = 'test.zip'
             args = self.args + ["pack", target, "--zip",
                                 str(tmpdir / name)]
-        self.cli.invoke(args, strict=True)
-        self.delete_all()
-        args = self.args + ["unpack", str(tmpdir / name)]
-        self.cli.invoke(args, strict=True)
-        self.run_asserts(target_name, multiple, span)
-        self.delete_all()
+            self.cli.invoke(args, strict=True)
+            assert os.path.exists(str(tmpdir / name))
+            assert os.path.getsize(str(tmpdir / name)) > 0
+            self.delete_all()
+            args = self.args + ["unpack", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            self.run_asserts(target_name, multiple, span)
+            self.delete_all()
+        elif packing == "dir":
+            name = 'test_dir'
+            args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            assert os.path.isdir(str(tmpdir / name))
+            assert os.path.exists(str(tmpdir / name / "transfer.xml"))
+            assert os.path.getsize(str(tmpdir / name / "transfer.xml")) > 0
+            self.delete_all()
+            args = self.args + ["unpack", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            self.run_asserts(target_name, multiple, span)
+            self.delete_all()
         span = False
         screens = []
         for i in range(3):
@@ -651,7 +700,7 @@ class TestTransfer(CLITest):
         self.run_asserts(target_name, multiple, span)
         self.delete_all()
 
-    @pytest.mark.parametrize('packing', ["tar", "zip"])
+    @pytest.mark.parametrize('packing', ["tar", "zip", "dir"])
     def test_pack_unpack_multiple_plates(self, packing, tmpdir):
         target_name = "plateid"
         plates = []
@@ -664,16 +713,38 @@ class TestTransfer(CLITest):
         if packing == "tar":
             name = 'test.tar'
             args = self.args + ["pack", target, str(tmpdir / name)]
-        else:
+            self.cli.invoke(args, strict=True)
+            assert os.path.exists(str(tmpdir / name))
+            assert os.path.getsize(str(tmpdir / name)) > 0
+            self.delete_all()
+            args = self.args + ["unpack", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            self.run_asserts(target_name, multiple, span)
+            self.delete_all()
+        elif packing == "zip":
             name = 'test.zip'
             args = self.args + ["pack", target, "--zip",
                                 str(tmpdir / name)]
-        self.cli.invoke(args, strict=True)
-        self.delete_all()
-        args = self.args + ["unpack", str(tmpdir / name)]
-        self.cli.invoke(args, strict=True)
-        self.run_asserts(target_name, multiple, span)
-        self.delete_all()
+            self.cli.invoke(args, strict=True)
+            assert os.path.exists(str(tmpdir / name))
+            assert os.path.getsize(str(tmpdir / name)) > 0
+            self.delete_all()
+            args = self.args + ["unpack", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            self.run_asserts(target_name, multiple, span)
+            self.delete_all()
+        elif packing == "dir":
+            name = 'test_dir'
+            args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            assert os.path.isdir(str(tmpdir / name))
+            assert os.path.exists(str(tmpdir / name / "transfer.xml"))
+            assert os.path.getsize(str(tmpdir / name / "transfer.xml")) > 0
+            self.delete_all()
+            args = self.args + ["unpack", str(tmpdir / name)]
+            self.cli.invoke(args, strict=True)
+            self.run_asserts(target_name, multiple, span)
+            self.delete_all()
         span = False
         plates = []
         for i in range(3):
