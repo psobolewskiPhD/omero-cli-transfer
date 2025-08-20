@@ -69,6 +69,8 @@ and Polygon-type ROIs are packaged.
 
 --zip packs the object into a compressed zip file rather than a tarball.
 
+--dir skips creating an archive and outputs the pack as a directory.
+
 --figure includes OMERO.Figures; note that this can lead to a performance
 hit and that Figures can reference images that are not included in your pack!
 
@@ -227,6 +229,9 @@ class TransferControl(GraphControl):
         pack.add_argument(
                 "--zip", help="Pack into a zip file rather than a tarball",
                 action="store_true")
+        pack.add_argument(
+            "--dir", help="Output as a directory, do not archive",
+            action="store_true")
         pack.add_argument(
                 "--figure", help="Include OMERO.Figures into the pack"
                                  " (caveats apply)",
@@ -588,10 +593,13 @@ class TransferControl(GraphControl):
                     image_filenames_mapping=path_id_dict,
                     conn=self.gateway)
         elif args.binaries == "all":
-            self._package_files(os.path.splitext(tar_path)[0], args.zip,
-                                folder)
-            logger.info("Cleaning up...")
-            shutil.rmtree(folder)
+            if not args.dir:
+                self._package_files(os.path.splitext(tar_path)[0], args.zip,
+                                    folder)
+                logger.info("Cleaning up...")
+                shutil.rmtree(folder)
+            else:
+                logger.info("--dir specified: output left as directory, not archived.")
         return
 
     def __unpack(self, args):
