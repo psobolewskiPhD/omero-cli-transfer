@@ -522,7 +522,10 @@ class TransferControl(GraphControl):
                                  " current permissions for current user.")
             logger.info("Populating xml...")
             tar_path = Path(args.filepath)
-            if args.binaries == "all":
+            if args.dir:
+                folder = str(tar_path)
+                logger.info(f"Output will be written to directory {folder}")
+            elif args.binaries == "all":
                 folder = str(tar_path) + "_folder"
             else:
                 folder = os.path.splitext(tar_path)[0]
