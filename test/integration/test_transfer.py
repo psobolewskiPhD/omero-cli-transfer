@@ -540,7 +540,8 @@ class TestTransfer(CLITest):
                                     str(tmpdir / name)]
             elif packing == "dir":
                 name = 'test_dir'
-                args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
+                args = self.args + ["pack", target,
+                                    "--dir", str(tmpdir / name)]
             self.cli.invoke(args, strict=True)
             self.assert_pack_output_exists(packing, tmpdir, name)
             self.delete_all()
