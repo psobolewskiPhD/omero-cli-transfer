@@ -518,7 +518,10 @@ class TestTransfer(CLITest):
             self.cli.invoke(args, strict=True)
             self.assert_pack_output_exists(packing, tmpdir, name)
             self.delete_all()
-            args = self.args + ["unpack", str(tmpdir / name)]
+            if packing == "dir":
+                args = self.args + ["unpack", "--folder", str(tmpdir / name)]
+            else:
+                args = self.args + ["unpack", str(tmpdir / name)]
             self.cli.invoke(args, strict=True)
             self.run_asserts(target_name, multiple, span)
             self.delete_all()
@@ -531,11 +534,15 @@ class TestTransfer(CLITest):
             if packing == "tar":
                 name = 'test.tar'
                 args = self.args + ["pack", target, str(tmpdir / name)]
-            else:
+            elif packing == "zip":
                 name = 'test.zip'
                 args = self.args + ["pack", target, "--zip",
                                     str(tmpdir / name)]
+            elif packing == "dir":
+                name = 'test_dir'
+                args = self.args + ["pack", target, "--dir", str(tmpdir / name)]
             self.cli.invoke(args, strict=True)
+            self.assert_pack_output_exists(packing, tmpdir, name)
             self.delete_all()
             if packing == "dir":
                 args = self.args + ["unpack", "--folder", str(tmpdir / name)]
