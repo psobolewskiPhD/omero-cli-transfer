@@ -49,7 +49,10 @@ Currently, only MapAnnotations, Tags, FileAnnotations, LongAnnotations (i.e. rat
 
 Note that, if you are packing a `Plate` or `Screen`, default OMERO settings prevent you from downloading Plates and you will get errors if you do so. If you want to generate a pack file from these entities, you will need to set `omero.policy.binary_access` appropriately.
 
-`--zip` packs the object into a compressed zip file rather than a tarball.
+The output format is defined by the path that is provided. For example, a path ending
+in `.zip` will generate a (compressed) zip file (equivalent to the deprecated `--zip` flag), 
+while a path ending in `.tar` will generate a tarball. Importantly, a path without an extension 
+will be intrepreted as an output directory, with no additional compression/archiving.
 
 `--barchive` creates a package compliant with Bioimage Archive submission standards - see below for more detail.
 
